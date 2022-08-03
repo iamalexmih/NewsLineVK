@@ -1,0 +1,6 @@
+framework module Pods_NewsLineVK {
+  umbrella header "Pods-NewsLineVK-umbrella.h"
+
+  export *
+  module * { export * }
+}
