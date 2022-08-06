@@ -7,7 +7,11 @@
 
 import UIKit
 
-final class NetWorkService {
+protocol NetworkingProtocol {
+    func request(path: String, parameters: [String : String]?, completion: @escaping (Data?, Error?) -> Void)
+}
+
+final class NetWorkService: NetworkingProtocol {
     
     private let authService: AuthService
     
@@ -15,29 +19,44 @@ final class NetWorkService {
         self.authService = authService
     }
     
-    func getFeed() {
-        
+    
+    func createDataTask(from request: URLRequest, completion: @escaping (Data?, Error?) -> Void) -> URLSessionDataTask {
+
+        return URLSession.shared.dataTask(with: request) { data, request, error in
+            DispatchQueue.main.async {
+                completion(data, error)
+            }
+        }
+    }
+    
+    
+    private func url(from path: String, parameters: [String : String]) -> URL {
         var componentsURL = URLComponents()
-        
-//https://api.vk.com/method/users.get?user_ids=210700286&fields=bdate&access_token=533bacf01e11f55b536a565b57531ac114461ae8736d6506a3&v=5.131
-        
-        guard let token = authService.token else { return } //извлекаем опционал token
-        
-        let parameters = ["filters" : "post,photo"]
-        var allParameters = parameters
-        allParameters["access_token"] = token
-        allParameters["v"] = QueryAPI.version
         
         componentsURL.scheme = QueryAPI.scheme
         componentsURL.host = QueryAPI.host
-        componentsURL.path = QueryAPI.newsFeed
-        componentsURL.queryItems = allParameters.map { (key: String, value: String) in
+        componentsURL.path = path //вынесен в параметры функции, так как может понадобиться другой запрос
+        componentsURL.queryItems = parameters.map { (key: String, value: String) in
                                                         URLQueryItem(name: key, value: value)
                                                     }
+        return componentsURL.url!
         
-        let url = componentsURL.url!
+    }
+    
+    //MARK: - func NetworkingProtocol protocol
+    
+    func request(path: String, parameters: [String : String]?, completion: @escaping (Data?, Error?) -> Void) {
+        guard let token = authService.token else { return } //извлекаем опционал token
+        
+        var allParameters = parameters ?? [String : String]()
+        allParameters["access_token"] = token
+        allParameters["v"] = QueryAPI.version
+        
+        let url = self.url(from: path, parameters: allParameters)
+        let request = URLRequest(url: url)
+        let task = createDataTask(from: request, completion: completion)
+        task.resume()
         print(url)
-        
     }
     
 }

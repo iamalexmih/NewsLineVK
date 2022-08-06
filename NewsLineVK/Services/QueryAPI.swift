@@ -12,4 +12,6 @@ struct QueryAPI {
     static let host = "api.vk.com"
     static let version = "5.131"
     static let newsFeed = "/method/newsfeed.get"
+    static let newsSuggestedSources = "/method/newsfeed.getSuggestedSources"
+    static let wall = "/method/wall.get"
 }
