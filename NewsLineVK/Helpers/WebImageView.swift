@@ -9,17 +9,19 @@ import UIKit
 
 class WebImageView: UIImageView {
     
-    func set(imageURL: String) {
-        guard let url = URL(string: imageURL) else { return }
+    func set(imageURL: String?) {
+        guard let imageURL = imageURL, let url = URL(string: imageURL) else {
+            self.image = nil
+            return }
         
         if let cachedResponse = URLCache.shared.cachedResponse(for: URLRequest(url: url)) {
             //if image exist in cache, else
             self.image = UIImage(data: cachedResponse.data)
-            print("from cache")
-            return //код дальше не пойдет, если нашелся кэш картинки.
+            //print("from cache")
+            return
         }
         
-        print("from Internet")
+        //print("from Internet")
         
         let dataTask = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
             DispatchQueue.main.async {
