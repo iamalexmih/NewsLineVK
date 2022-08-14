@@ -25,10 +25,10 @@ class NewsFeedPresenter: NewsFeedPresentationLogic {
     func presentData(response: NewsFeed.Model.Response.ResponseType) {
         
         switch response {
-            case .presentNewsfeed(feed: let feed):
+            case .presentNewsfeed(feed: let feed, let revealdedPostId):
                 
                 let cells = feed.items.map { itemFeed in
-                    cellViewModelForPresenter(from: itemFeed, profiles: feed.profiles, groups: feed.groups)
+                    cellViewModelForPresenter(from: itemFeed, profiles: feed.profiles, groups: feed.groups, revealdedPostId: revealdedPostId)
                 }
                 
                 let feedViewModel = FeedViewModel(cells: cells)
@@ -37,17 +37,20 @@ class NewsFeedPresenter: NewsFeedPresentationLogic {
         
     }
     
-    private func cellViewModelForPresenter(from feedItem: FeedItem, profiles: [Profile], groups: [Group]) -> FeedViewModel.CellModel {
+    private func cellViewModelForPresenter(from feedItem: FeedItem, profiles: [Profile], groups: [Group], revealdedPostId: [Int]) -> FeedViewModel.CellModel {
         
         let orProfileOrGroups = self.profile(for: feedItem.sourceId, profiles: profiles, groups: groups)
         
         let date = Date(timeIntervalSince1970: feedItem.date)
         let dateItem = dateFormatter.string(from: date)
-        let photoAttachment = self.photoAttachment(feedItem: feedItem)
+        let photoAttachments = self.photoAttachments(feedItem: feedItem)
         
-        let size = calculatorCellLayoutDelegate.sizes(postText: feedItem.text, photoAttachment: photoAttachment)
+        let isFullSize = revealdedPostId.contains(feedItem.postId)
         
-        return FeedViewModel.CellModel(iconUrlString: orProfileOrGroups.photo,
+        let size = calculatorCellLayoutDelegate.sizes(postText: feedItem.text, photoAttachments: photoAttachments, isFullSizePost: isFullSize)
+        
+        return FeedViewModel.CellModel(postId: feedItem.postId,
+                                       iconUrlString: orProfileOrGroups.photo,
                                        name: orProfileOrGroups.name,
                                        date: dateItem,
                                        text: feedItem.text,
@@ -55,7 +58,7 @@ class NewsFeedPresenter: NewsFeedPresentationLogic {
                                        comments: String(feedItem.comments?.count ?? 0),
                                        repost: String(feedItem.reposts?.count ?? 0),
                                        views: String(feedItem.views?.count ?? 0),
-                                       photoAttachment: photoAttachment,
+                                       photoAttachments: photoAttachments,
                                        size: size)
     }
     
@@ -77,4 +80,14 @@ class NewsFeedPresenter: NewsFeedPresentationLogic {
         return FeedViewModel.FeedCellPhotoAttachment(photoUrlString: firstPhoto.srcBIG, width: firstPhoto.width, height: firstPhoto.height)
     }
     
+    private func photoAttachments(feedItem: FeedItem) -> [FeedViewModel.FeedCellPhotoAttachment] {
+        guard let attachments = feedItem.attachments else { return [] }
+        
+        return attachments.compactMap({ attachment -> FeedViewModel.FeedCellPhotoAttachment? in
+            guard let photo = attachment.photo else { return nil }
+            return FeedViewModel.FeedCellPhotoAttachment(photoUrlString: photo.srcBIG,
+                                                         width: photo.width,
+                                                         height: photo.height)
+        })
+    }
 }

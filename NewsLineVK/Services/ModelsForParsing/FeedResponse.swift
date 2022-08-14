@@ -19,7 +19,8 @@ struct FeedResponse: Decodable {
 
 struct FeedItem: Decodable {
     let sourceId: Int
-    let text: String? //теста в посте может не быть, только фотография.
+    let postId: Int
+    let text: String? //текста в посте может не быть, только фотография.
     let date: Double
     let comments: CountLikeCommentRepostViews?
     let likes: CountLikeCommentRepostViews?

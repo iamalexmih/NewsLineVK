@@ -9,22 +9,15 @@ import UIKit
 
 
 protocol CalculatorCellLayoutProtocol {
-    func sizes(postText: String?, photoAttachment: PhotoAttachmentCellFeedViewModelProtocol?) -> CellFeedSizeProtocol
+    func sizes(postText: String?, photoAttachments: [PhotoAttachmentCellFeedViewModelProtocol], isFullSizePost: Bool) -> CellFeedSizeProtocol
 }
 
 struct Sizes: CellFeedSizeProtocol {
+    var postLabelFrame: CGRect
+    var moreTextButtonFrame: CGRect
+    var attachmentFrame: CGRect
     var bottomViewFrame: CGRect
     var totalHeight: CGFloat
-    var postLabelFrame: CGRect
-    var attachmentFrame: CGRect
-}
-
-struct Constants {
-    static let cardInsets = UIEdgeInsets(top: 5, left: 8, bottom: 5, right: 8)
-    static let topViewHeight: CGFloat = 43
-    static let postLabelInsets = UIEdgeInsets(top: 14+5+topViewHeight, left: 18, bottom: 15, right: 18)
-    static let postTextFont = UIFont.systemFont(ofSize: 15)
-    static let bottomViewHeight: CGFloat = 45
 }
 
 final class CalculatorCellLayout: CalculatorCellLayoutProtocol {
@@ -35,48 +28,82 @@ final class CalculatorCellLayout: CalculatorCellLayoutProtocol {
         self.screenWidth = screenWidth
     }
     
-    func sizes(postText: String?, photoAttachment: PhotoAttachmentCellFeedViewModelProtocol?) -> CellFeedSizeProtocol {
+    func sizes(postText: String?, photoAttachments: [PhotoAttachmentCellFeedViewModelProtocol], isFullSizePost: Bool) -> CellFeedSizeProtocol {
         
-        let cardViewWidth = screenWidth - Constants.cardInsets.left - Constants.cardInsets.right
+        var showMoreTextButton = false
+        
+        let cardViewWidth = screenWidth - ConstantsSizeItem.cardInsets.left - ConstantsSizeItem.cardInsets.right
         
         //MARK: - Work with postLabelFrame
         
-        var postLabelFrame = CGRect(origin: CGPoint(x: Constants.postLabelInsets.left, y: Constants.postLabelInsets.top), size: CGSize.zero)
+        var postLabelFrame = CGRect(origin: CGPoint(x: ConstantsSizeItem.postLabelInsets.left, y: ConstantsSizeItem.postLabelInsets.top), size: CGSize.zero)
         
         if let postText = postText, !postText.isEmpty {
-            let width = cardViewWidth - Constants.postLabelInsets.left - Constants.postLabelInsets.right
-            let height = postText.height(width: width, font: Constants.postTextFont)
+            let width = cardViewWidth - ConstantsSizeItem.postLabelInsets.left - ConstantsSizeItem.postLabelInsets.right
+            var height = postText.height(width: width, font: ConstantsSizeItem.postTextFont)
+            
+            // скрывать текст для кнопки "показать текст"
+            let limitHeight = ConstantsSizeItem.postTextFont.lineHeight * ConstantsSizeItem.minifiedPostLimitLines
+            
+            if height > limitHeight && !isFullSizePost {
+                height = ConstantsSizeItem.postTextFont.lineHeight * ConstantsSizeItem.minifiedPostLines
+                showMoreTextButton = true
+            }
             
             postLabelFrame.size = CGSize(width: width, height: height)
         }
         
+        //MARK: - Work with moreTextButtonFrame
+        
+        var moreTextButtonSize = CGSize.zero
+        
+        if showMoreTextButton {
+            moreTextButtonSize = ConstantsSizeItem.moreTextButtonSize
+        }
+        
+        let moreTextButtonOrigin = CGPoint(x: ConstantsSizeItem.moreTextButtonInsets.left, y: postLabelFrame.maxY)
+        
+        let moreTextButtonFrame = CGRect(origin: moreTextButtonOrigin, size: moreTextButtonSize)
+
+        
         //MARK: - Work with attachmentFrame
         
-        let attachmentTop = postLabelFrame.size == CGSize.zero ? Constants.postLabelInsets.top : postLabelFrame.maxY+Constants.postLabelInsets.bottom
+        let attachmentTop = postLabelFrame.size == CGSize.zero ? ConstantsSizeItem.postLabelInsets.top : moreTextButtonFrame.maxY+ConstantsSizeItem.postLabelInsets.bottom
         
         var attachmentFrame = CGRect(origin: CGPoint(x: 0, y: attachmentTop), size: CGSize.zero)
         
-        if let photoAttachment = photoAttachment {
+        if let photoAttachment = photoAttachments.first {
             let photoHeight: Float = Float(photoAttachment.height)
             let photoWidth: Float = Float(photoAttachment.width)
             let ration = CGFloat(photoHeight / photoWidth)
-            attachmentFrame.size = CGSize(width: cardViewWidth, height: cardViewWidth*ration)
+            if photoAttachments.count == 1 {
+                attachmentFrame.size = CGSize(width: cardViewWidth, height: cardViewWidth*ration)
+            } else if photoAttachments.count > 1 {
+                var photos = [CGSize]()
+                for photo in photoAttachments {
+                    let photoSize = CGSize(width: CGFloat(photo.width), height: CGFloat(photo.height))
+                    photos.append(photoSize)
+                }
+                let rowHeight = RowLayout.rowHeightCounter(superViewWidth: cardViewWidth, photosArray: photos)
+                attachmentFrame.size = CGSize(width: cardViewWidth, height: rowHeight!)
+            }
         }
         
         //MARK: - Work with bottomViewFrame
         
         let bottomViewTop = max(postLabelFrame.maxY, attachmentFrame.maxY)
         
-        var bottomViewFrame = CGRect(origin: CGPoint(x: 0, y: bottomViewTop), size: CGSize(width: cardViewWidth, height: Constants.bottomViewHeight))
-        
-        
+        let bottomViewFrame = CGRect(origin: CGPoint(x: 0, y: bottomViewTop), size: CGSize(width: cardViewWidth, height: ConstantsSizeItem.bottomViewHeight))
         
         //MARK: - Work with totalHeight
 
-        let totalHeight = bottomViewFrame.maxY + Constants.cardInsets.bottom
+        let totalHeight = bottomViewFrame.maxY + ConstantsSizeItem.cardInsets.bottom
         
         
-        
-        return Sizes(bottomViewFrame: bottomViewFrame, totalHeight: totalHeight, postLabelFrame: postLabelFrame, attachmentFrame: attachmentFrame)
+        return Sizes(postLabelFrame: postLabelFrame,
+                     moreTextButtonFrame: moreTextButtonFrame,
+                     attachmentFrame: attachmentFrame,
+                     bottomViewFrame: bottomViewFrame,
+                     totalHeight: totalHeight)
     }
 }

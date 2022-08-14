@@ -54,6 +54,7 @@
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="UBz-LY-JLy" customClass="WebImageView" customModule="NewsLineVK" customModuleProvider="target">
                                 <rect key="frame" x="8" y="106" width="343" height="45"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                <color key="tintColor" red="1" green="1" blue="1" alpha="0.84705882352941175" colorSpace="calibratedRGB"/>
                             </imageView>
                             <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Xgn-LN-seY" userLabel="Bottom View">
                                 <rect key="frame" x="0.0" y="156" width="359" height="45"/>

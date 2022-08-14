@@ -17,7 +17,7 @@ protocol CellFeedViewModelProtocol {
     var comments: String? { get }
     var repost: String? { get }
     var views: String? { get }
-    var photoAttachment: PhotoAttachmentCellFeedViewModelProtocol? { get }
+    var photoAttachments: [PhotoAttachmentCellFeedViewModelProtocol] { get }
     var size: CellFeedSizeProtocol { get }
 }
 
@@ -26,6 +26,7 @@ protocol CellFeedSizeProtocol {
     var attachmentFrame: CGRect { get }
     var bottomViewFrame: CGRect { get }
     var totalHeight: CGFloat { get }
+    var moreTextButtonFrame: CGRect { get }
 }
 
 protocol PhotoAttachmentCellFeedViewModelProtocol {
@@ -77,29 +78,29 @@ class CellNewsfeed: UITableViewCell {
         setDesignCell()
     }
     
-    func set(viewModel: CellFeedViewModelProtocol) {
-        
-        iconImageView.set(imageURL: viewModel.iconUrlString)
-        
-        labelNameOwnPost.text = viewModel.name
-        labelDataPost.text = viewModel.date
-        labelPost.text = viewModel.text
-        labelLikes.text = viewModel.likes
-        labelComments.text = viewModel.comments
-        labelRepost.text = viewModel.repost
-        labelViewsPost.text = viewModel.views
-        
-        labelPost.frame = viewModel.size.postLabelFrame
-        postImageView.frame = viewModel.size.attachmentFrame
-        bottomView.frame = viewModel.size.bottomViewFrame
-        
-        if let photoAttachment = viewModel.photoAttachment {
-            postImageView.set(imageURL: photoAttachment.photoUrlString)
-            postImageView.isHidden = false
-        } else {
-            postImageView.isHidden = true
-        }
-    }
+//    func set(viewModel: CellFeedViewModelProtocol) {
+//
+//        iconImageView.set(imageURL: viewModel.iconUrlString)
+//
+//        labelNameOwnPost.text = viewModel.name
+//        labelDataPost.text = viewModel.date
+//        labelPost.text = viewModel.text
+//        labelLikes.text = viewModel.likes
+//        labelComments.text = viewModel.comments
+//        labelRepost.text = viewModel.repost
+//        labelViewsPost.text = viewModel.views
+//
+//        labelPost.frame = viewModel.size.postLabelFrame
+//        postImageView.frame = viewModel.size.attachmentFrame
+//        bottomView.frame = viewModel.size.bottomViewFrame
+//
+//        if let photoAttachment = viewModel.photoAttachment {
+//            postImageView.set(imageURL: photoAttachment.photoUrlString)
+//            postImageView.isHidden = false
+//        } else {
+//            postImageView.isHidden = true
+//        }
+//    }
     
     
     
