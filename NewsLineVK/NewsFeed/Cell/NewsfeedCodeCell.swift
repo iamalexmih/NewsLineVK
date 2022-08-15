@@ -68,15 +68,6 @@ final class NewsfeedCodeCell: UITableViewCell {
         return view
     }()
     
-//    let labelPost: UILabel = {
-//       let label = UILabel()
-//        //label.translatesAutoresizingMaskIntoConstraints = false
-//        label.numberOfLines = 0
-//        label.font = ConstantsSizeItem.postTextFont
-//        label.textColor = #colorLiteral(red: 0.1725490196, green: 0.1764705882, blue: 0.1803921569, alpha: 1)
-//        return label
-//    }()
-    
     let labelPost: UITextView = {
        let textView = UITextView()
         textView.font = ConstantsSizeItem.postTextFont
