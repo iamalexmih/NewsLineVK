@@ -8,6 +8,11 @@
 import UIKit
 
 
+
+protocol TitleViewViewModelProtocol {
+    var photoUrlString: String?  { get }
+}
+
 class TitleView: UIView {
     
     private var myTextField = CustomTextField()
@@ -28,6 +33,10 @@ class TitleView: UIView {
         addSubview(myAvatarView)
         
         makeConstraints()
+    }
+    
+    func set(userViewModel: TitleViewViewModelProtocol) {
+        myAvatarView.set(imageURL: userViewModel.photoUrlString)
     }
     
     private func makeConstraints() {

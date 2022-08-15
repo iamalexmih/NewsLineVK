@@ -16,9 +16,17 @@ class NewsFeedViewController: UIViewController, NewsFeedDisplayLogic, NewsfeedCo
     
     var interactor: NewsFeedBusinessLogic?
     var router: (NSObjectProtocol & NewsFeedRoutingLogic)?
-    private var titleView = TitleView()
     
-    private var feedViewModel = FeedViewModel(cells: [])
+    private var titleView = TitleView()
+    private lazy var footerView = FooterView()
+    
+    private var feedViewModel = FeedViewModel(cells: [], footerTitle: nil)
+    
+    private var refreshControl: UIRefreshControl = {
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action: #selector(refresh), for: .valueChanged)
+        return refreshControl
+    }()
     
     @IBOutlet weak var tableView: UITableView!
     
@@ -45,7 +53,18 @@ class NewsFeedViewController: UIViewController, NewsFeedDisplayLogic, NewsfeedCo
     override func viewDidLoad() {
         super.viewDidLoad()
         setup()
+        setupTableView()
         setupTopBars()
+
+        view.backgroundColor = #colorLiteral(red: 0.9296012169, green: 0.9544633575, blue: 1, alpha: 1)
+        
+        interactor?.makeRequest(request: .getNewsFeed)
+        interactor?.makeRequest(request: .getUser)
+    }
+    
+    private func setupTableView() {
+        let topInset: CGFloat = 8
+        tableView.contentInset.top = topInset
         
         tableView.register(UINib(nibName: "CellNewsfeed", bundle: nil), forCellReuseIdentifier: CellNewsfeed.reuseId)
         tableView.register(NewsfeedCodeCell.self, forCellReuseIdentifier: NewsfeedCodeCell.reuseId)
@@ -53,24 +72,39 @@ class NewsFeedViewController: UIViewController, NewsFeedDisplayLogic, NewsfeedCo
         tableView.separatorStyle = .none
         tableView.backgroundColor = .clear
         tableView.allowsSelection = false
-        view.backgroundColor = #colorLiteral(red: 0.9296012169, green: 0.9544633575, blue: 1, alpha: 1)
         
-        interactor?.makeRequest(request: .getNewsFeed)
+        tableView.addSubview(refreshControl)
+        tableView.tableFooterView = footerView
     }
     
-
+    @objc private func refresh() {
+        interactor?.makeRequest(request: NewsFeed.Model.Request.RequestType.getNewsFeed)
+    }
     
     func displayData(viewModel: NewsFeed.Model.ViewModel.ViewModelData) {
         switch viewModel {
                 
             case .displayNewsfeed(feedViewModel: let feedViewModel):
                 self.feedViewModel = feedViewModel
+                footerView.setTitle(feedViewModel.footerTitle)
                 tableView.reloadData()
+                refreshControl.endRefreshing()
+            case .displayUser(userViewModel: let userViewModel):
+                titleView.set(userViewModel: userViewModel)
+            case .displayFooterLoader:
+                footerView.showLoaderIndicate()
         }
     }
     
+    //MARK: - Follow position content on screen
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        if scrollView.contentOffset.y > scrollView.contentSize.height / 1.1 {
+            interactor?.makeRequest(request: .getNextBatch)
+        }
+    }
+    
+    
     //MARK: - Setting Top Bars
-
     
     private func setupTopBars() {
         self.navigationController?.hidesBarsOnSwipe = true

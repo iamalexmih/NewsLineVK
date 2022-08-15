@@ -31,8 +31,14 @@ class NewsFeedPresenter: NewsFeedPresentationLogic {
                     cellViewModelForPresenter(from: itemFeed, profiles: feed.profiles, groups: feed.groups, revealdedPostId: revealdedPostId)
                 }
                 
-                let feedViewModel = FeedViewModel(cells: cells)
+                let feedViewModel = FeedViewModel(cells: cells, footerTitle: "\(cells.count) записи")
                 viewController?.displayData(viewModel: .displayNewsfeed(feedViewModel: feedViewModel))
+            case .presentUserInfo(user: let user):
+                let userViewModel = UserViewModel(photoUrlString: user?.photo100)
+                viewController?.displayData(viewModel: .displayUser(userViewModel: userViewModel))
+                
+            case .presentFooterLoader:
+                viewController?.displayData(viewModel: NewsFeed.Model.ViewModel.ViewModelData.displayFooterLoader)
         }
         
     }
@@ -54,12 +60,24 @@ class NewsFeedPresenter: NewsFeedPresentationLogic {
                                        name: orProfileOrGroups.name,
                                        date: dateItem,
                                        text: feedItem.text,
-                                       likes: String(feedItem.likes?.count ?? 0),
-                                       comments: String(feedItem.comments?.count ?? 0),
-                                       repost: String(feedItem.reposts?.count ?? 0),
-                                       views: String(feedItem.views?.count ?? 0),
+                                       likes: formattedCounter(feedItem.likes?.count),
+                                       comments: formattedCounter(feedItem.comments?.count),
+                                       repost: formattedCounter(feedItem.reposts?.count),
+                                       views: formattedCounter(feedItem.views?.count),
                                        photoAttachments: photoAttachments,
                                        size: size)
+    }
+    
+    private func formattedCounter(_ counter: Int?) -> String? {
+        guard let counter = counter, counter > 0 else { return nil }
+        var counterString = String(counter)
+        if 4...6 ~= counterString.count {
+            counterString = String(counterString.dropLast(3)) + "K"
+        } else if counterString.count > 6 {
+            counterString = String(counterString.dropLast(6)) + "M"
+        }
+            
+        return counterString
     }
     
     private func profile(for sourceId: Int, profiles: [Profile], groups: [Group]) -> profileRepresentableProtocol {
